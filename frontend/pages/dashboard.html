@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Banking Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <div class="account-header">
+        <div class="header-actions">
+          <button class="logout-button" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+
+        <div class="account-name" id="accountHolderName">John Doe</div>
+        <div class="account-number" id="accountNumber">
+          Account Number : **** **** **** 1234
+        </div>
+        <div class="balance-section">
+          <div>Available Balance</div>
+          <div class="balance-amount" id="accountBalance">$24,500.00</div>
+        </div>
+      </div>
+
+      <div class="actions-grid">
+        <button class="action-button" id="transferButton">
+          <i class="fas fa-exchange-alt"></i>
+          <span class="action-text">Transfer Funds</span>
+        </button>
+        <button class="action-button" id="payBillsButton">
+          <i class="fas fa-file-invoice-dollar"></i>
+          <span class="action-text">Pay Bills</span>
+        </button>
+        <button class="action-button" id="historyButton">
+          <i class="fas fa-history"></i>
+          <span class="action-text">Transaction History</span>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      async function loadUserDetails() {
+        // Check if user is authenticated
+        const token = localStorage.getItem("token");
+        console.log(token);
+        if (!token) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        try {
+          const userId = localStorage.getItem("userId");
+          console.log("User id: " + userId);
+          if (!userId) {
+            throw new Error("User ID not found");
+          }
+
+          const response = await fetch(
+            `http://localhost:8080/api/users/${userId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.status === 0) {
+            // Token expired or invalid
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            window.location.href = "login.html";
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+
+          const user = await response.json();
+          userData = user.data;
+
+          // Update dashboard UI
+          document.getElementById("accountHolderName").textContent =
+            userData.name;
+          document.getElementById(
+            "accountNumber"
+          ).textContent = `Account Number : ${userData.id}`;
+          document.getElementById(
+            "accountBalance"
+          ).textContent = `$ ${userData.balance.toFixed(2)}`;
+
+          // Add event listeners for buttons
+          setupButtonListeners(userId);
+        } catch (error) {
+          console.error("Error loading user details:", error);
+          //alert("Failed to load user details");
+        }
+      }
+
+      function setupButtonListeners(userId) {
+        document
+          .getElementById("transferButton")
+          .addEventListener("click", () => {
+            window.location.href = `transferFoundForm.html`;
+          });
+
+        document
+          .getElementById("payBillsButton")
+          .addEventListener("click", () => {
+            window.location.href = `paymentForm.html`;
+          });
+
+        document
+          .getElementById("historyButton")
+          .addEventListener("click", () => {
+            window.location.href = `transactions.html`;
+          });
+      }
+      function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        window.location.href = "loginForm.html";
+      }
+
+      // Add function to check auth status on every page load
+      function checkAuthStatus() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = "login.html";
+          return false;
+        }
+        return true;
+      }
+
+      // Load user details when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        if (checkAuthStatus()) {
+          loadUserDetails();
+        }
+      });
+    </script>
+  </body>
+</html>

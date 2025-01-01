@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureBank - Your Trusted Banking Partner</title>
+    <link rel="stylesheet" href="/css/loginForm.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">SB</div>
+        <div class="bank-name">SecureBank</div>
+    </header>
+
+    <main class="hero">
+        <h1>Welcome to SecureBank</h1>
+        <p>Your trusted partner for secure banking solutions</p>
+        <button class="login-btn" onclick="showLogin()">Login to Your Account</button>
+    </main>
+
+    <div class="modal" id="loginModal" onclick="hideLogin()">
+        <div class="login-form-container" onclick="event.stopPropagation()">
+            <h2 class="form-header">Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="submit-btn">Login</button>
+                    <button type="button" class="cancel-btn" onclick="hideLogin()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showLogin() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function hideLogin() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    localStorage.setItem('token', userData.data.token);
+                    localStorage.setItem('userId', userData.data.id);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Invalid username or password!');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed! Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transaction History</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <link rel="stylesheet" href="/css/transactions.css" />
+  </head>
+  <body>
+    <div class="history-container">
+      <div class="header">
+        <button class="button" onclick="window.history.back()">
+          <i class="fas fa-arrow-left"></i>
+          Back to Dashboard
+        </button>
+        <h1>Transaction History</h1>
+      </div>
+
+      <div class="transaction-list" id="transactionList">
+        <!-- Transactions will be loaded here -->
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8080/api";
+
+      // Function to format date
+      function formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      // Function to format amount
+      function formatAmount(amount) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(amount);
+      }
+
+      // Function to create transaction HTML
+      function createTransactionHTML(transaction) {
+        const amountClass =
+          transaction.type === "Deposit" ? "deposit-amount" : "";
+
+        return `
+          <div class="transaction-item">
+            <div class="transaction-info">
+              <div class="transaction-icon">
+                <i class="fas ${getTransactionIcon(transaction.type)}"></i>
+              </div>
+              <div class="transaction-details">
+                <div class="transaction-name">${transaction.type} / ${
+          transaction.type === "Deposit" ? "Sender" : "Receiver"
+        } - ${transaction.receiver}</div>
+                <div class="transaction-date">${formatDate(
+                  transaction.date
+                )}</div>
+                <div class="transaction-date">${transaction.description}</div>
+              </div>
+            </div>
+            <div class="transaction-amount ${amountClass}">
+              ${transaction.type === "Deposit" ? "+" : "-"} ${formatAmount(
+          transaction.amount
+        )}
+            </div>
+          </div>
+        `;
+      }
+
+      // Function to get appropriate icon based on transaction type
+      function getTransactionIcon(type) {
+        const icons = {
+          Payment: "fa-file-invoice-dollar",
+          Transaction: "fa-exchange-alt",
+          Deposit: "fa-arrow-down",
+        };
+        return icons[type] || "fa-circle";
+      }
+
+      // Function to show loading state
+      function showLoading() {
+        const transactionList = document.getElementById("transactionList");
+        transactionList.innerHTML =
+          '<div class="loading">Loading transactions...</div>';
+      }
+
+      // Function to show error state
+      function showError(message) {
+        const transactionList = document.getElementById("transactionList");
+        transactionList.innerHTML = `<div class="error">${message}</div>`;
+      }
+
+      // Function to check authentication
+      function checkAuth() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = "login.html";
+          return false;
+        }
+        return true;
+      }
+
+      // Function to fetch transactions
+      async function fetchTransactions() {
+        if (!checkAuth()) return;
+
+        const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
+        let loading = false;
+
+        if (loading) return;
+
+        loading = true;
+        showLoading();
+
+        try {
+          const response = await axios({
+            method: "get",
+            url: `${API_BASE_URL}/users/${userId}/transactions`,
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          const transactions = response.data;
+          const transactionList = document.getElementById("transactionList");
+
+          if (!transactions || transactions.length === 0) {
+            transactionList.innerHTML =
+              '<div class="loading">No transactions found</div>';
+            return;
+          }
+
+          // Sort transactions by date (most recent first)
+          const sortedTransactions = transactions.sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+
+          transactionList.innerHTML = sortedTransactions
+            .map((transaction) => createTransactionHTML(transaction))
+            .join("");
+        } catch (error) {
+          console.error("Error fetching transactions:", error);
+
+          // Handle token expiration
+          if (error.response?.status === 401) {
+            alert("Session expired. Please login again");
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            window.location.href = "login.html";
+            return;
+          }
+
+          showError("Failed to load transactions. Please try again later.");
+        } finally {
+          loading = false;
+        }
+      }
+
+      // Check authentication and load transactions when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        if (checkAuth()) {
+          fetchTransactions();
+        }
+      });
+    </script>
+  </body>
+</html>

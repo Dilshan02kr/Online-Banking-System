@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="/css/paymentForm.css" />
+  </head>
+  <body>
+    <div class="form-container">
+      <h2 class="form-title">Bill / Payments</h2>
+      <form id="transferForm">
+        <div class="form-group">
+          <label for="account">Account Number</label>
+          <input
+            type="text"
+            id="account"
+            name="account"
+            required
+            placeholder="Enter receiver's account number"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="reason">Reason for Payment</label>
+          <input
+            type="text"
+            id="reason"
+            name="reason"
+            required
+            placeholder="Enter Reason for Payment"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Amount</label>
+          <input
+            type="number"
+            id="amount"
+            name="amount"
+            required
+            placeholder="Enter amount to transfer"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            placeholder="Add a note about this transfer"
+          ></textarea>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="submit-btn">Pay</button>
+          <button
+            type="button"
+            class="cancel-btn"
+            onclick="window.location.href='dashboard.html'"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // Check authentication when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = "login.html";
+          return;
+        }
+      });
+
+      // Get userId from localStorage instead of URL params for security
+      const userId = localStorage.getItem("userId");
+
+      document
+        .getElementById("transferForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          try {
+            // Get token
+            const token = localStorage.getItem("token");
+            if (!token) {
+              alert("Please login again");
+              window.location.href = "login.html";
+              return;
+            }
+
+            // Get form values
+            const account = document.getElementById("account").value;
+            const reason = document.getElementById("reason").value;
+            const amount = document.getElementById("amount").value;
+            const description = document.getElementById("description").value;
+
+            // Create transaction object
+            const transaction = {
+              account: account,
+              amount: amount,
+              reason: reason,
+              description: description,
+            };
+
+            // Make API call with JWT token
+            const response = await axios({
+              method: "post",
+              url: `http://localhost:8080/api/users/${userId}/payments`,
+              data: transaction,
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            });
+
+            if (response.data) {
+              window.location.href = "dashboard.html";
+              alert("Transfer successful!");
+            }
+          } catch (error) {
+            console.error("Transfer error:", error);
+
+            // Handle token expiration
+            if (error.response?.status === 0) {
+              alert("Session expired. Please login again");
+              localStorage.removeItem("token");
+              localStorage.removeItem("userId");
+              window.location.href = "login.html";
+              return;
+            }
+
+            alert(
+              "Transfer failed: " +
+                (error.response?.data?.message || "Unknown error")
+            );
+          }
+        });
+    </script>
+  </body>
+</html>

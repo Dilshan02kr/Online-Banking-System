@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transfer Found Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <link rel="stylesheet" href="/css/transferFoundForm.css" />
+  </head>
+  <body>
+    <!-- Transfer Funds Form -->
+    <div class="transfer-form-container">
+      <h2 class="form-header">Transfer Funds</h2>
+      <form id="transferForm">
+        <div class="form-group">
+          <label for="receiverAccount">Recipient Account Number</label>
+          <input
+            type="text"
+            id="receiverAccount"
+            name="receiverAccount"
+            placeholder="Enter receiver's Account"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="transactionType">Transaction Type</label>
+          <input
+            type="text"
+            id="transactionType"
+            name="transactionType"
+            placeholder="Eg: Donation/Transaction"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="transferAmount">Amount</label>
+          <input
+            type="number"
+            id="transferAmount"
+            name="transferAmount"
+            placeholder="Enter amount to transfer"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="transferDescription">Description</label>
+          <textarea
+            id="transferDescription"
+            name="transferDescription"
+            placeholder="Add a note (optional)"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="button-group">
+          <button type="submit" class="submit-btn">Transfer</button>
+          <button
+            type="button"
+            class="cancel-btn"
+            onclick="window.location.href='dashboard.html'"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // Check authentication status when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = "login.html";
+          return;
+        }
+      });
+
+      // Get user ID from URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = localStorage.getItem("userId"); // Get userId from localStorage instead of URL
+
+      // Handle form submission
+      document
+        .getElementById("transferForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          try {
+            // Get token from localStorage
+            const token = localStorage.getItem("token");
+            if (!token) {
+              alert("Please login again");
+              window.location.href = "login.html";
+              return;
+            }
+
+            // Get form values
+            const receiverAccount =
+              document.getElementById("receiverAccount").value;
+            const transactionType =
+              document.getElementById("transactionType").value;
+            const amount = document.getElementById("transferAmount").value;
+            const description = document.getElementById(
+              "transferDescription"
+            ).value;
+
+            // Create transaction object
+            const transaction = {
+              targetUserId: receiverAccount,
+              amount: parseFloat(amount),
+              type: transactionType,
+              description: description,
+            };
+
+            // Make API call with JWT token in header
+            const response = await axios({
+              method: "post",
+              url: `http://localhost:8080/api/users/${userId}/transfers`,
+              data: transaction,
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            });
+
+            // Handle successful transfer
+            if (response.data) {
+              alert("Transfer successful!");
+              // Redirect back to dashboard
+              window.location.href = "dashboard.html";
+            }
+          } catch (error) {
+            console.error("Transfer error:", error);
+
+            // Handle authentication errors
+            if (error.response?.status === 0) {
+              alert("Session expired. Please login again.");
+              localStorage.removeItem("token");
+              localStorage.removeItem("userId");
+              window.location.href = "login.html";
+              return;
+            }
+
+            // Handle other errors
+            alert(
+              "Transfer failed: " +
+                (error.response?.data?.message || "Unknown error")
+            );
+          }
+        });
+
+      // Optional: Add a function to validate token before making transfer
+      // async function validateToken() {
+      //   const token = localStorage.getItem("token");
+      //   try {
+      //     const response = await axios({
+      //       method: "get",
+      //       url: "http://localhost:8080/api/auth/validate",
+      //       headers: {
+      //         Authorization: `Bearer ${token}`,
+      //       },
+      //     });
+      //     return true;
+      //   } catch (error) {
+      //     return false;
+      //   }
+      // }
+    </script>
+  </body>
+</html>

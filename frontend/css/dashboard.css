@@ -1,0 +1,155 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f5f5f5;
+  background-image: url(/assets/b5.jpg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.dashboard-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 900px;
+  padding: 30px;
+}
+
+.account-header {
+  background: linear-gradient(135deg, #02207A, #000040);
+  border-radius: 15px;
+  padding: 25px;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.account-name {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.account-number {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-bottom: 20px;
+}
+
+.balance-amount {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 30px;
+}
+
+.action-button {
+  text-decoration: none;
+  color: black;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  background: #02207A;
+  color: white;
+  transform: translateY(-3px);
+}
+
+.action-button i {
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.action-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.recent-activity {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.activity-header {
+  font-size: 1.2rem;
+  color: #374151;
+  margin-bottom: 15px;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.logout-button i {
+  font-size: 16px;
+}
+
+.logout-button span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Add media query for mobile responsiveness */
+@media (max-width: 768px) {
+  .header-actions {
+    margin-bottom: 15px;
+  }
+
+  .logout-button {
+    padding: 6px 12px;
+  }
+
+  .logout-button i {
+    font-size: 14px;
+  }
+
+  .logout-button span {
+    font-size: 12px;
+  }
+}
